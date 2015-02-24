@@ -14,13 +14,12 @@
 #include "NonLinearityLayer.h"
 #include "UpscaleLayer.h"
 #include "SpatialPriorLayer.h"
+#include "RBFLayer.h"
 #include "ConfigParsing.h"
  
 #include "ConfigurableFactory.h"
 
 namespace Conv {
-
-
 
 ConfigurableFactory::ConfigurableFactory ( std::istream& file, const unsigned int seed ) :
 		  seed_ ( seed ), file_ ( file ), method_ ( FCN ) {
@@ -196,12 +195,19 @@ int ConfigurableFactory::AddLayers ( Net& net, Connection data_layer_connection,
         last_layer_output = 0;
       }
 
-      if ( StartsWithIdentifier ( line, "tanh" ) ) {
-        TanhLayer* l = new TanhLayer();
-        last_layer_id = net.AddLayer ( l ,
-        { Connection ( last_layer_id, last_layer_output ) } );
-        last_layer_output = 0;
-      }
+	  if (StartsWithIdentifier(line, "tanh")) {
+		  TanhLayer* l = new TanhLayer();
+		  last_layer_id = net.AddLayer(l,
+		  { Connection(last_layer_id, last_layer_output) });
+		  last_layer_output = 0;
+	  }
+
+	  if (StartsWithIdentifier(line, "rbf")) {
+		  RBFLayer* l = new RBFLayer();
+		  last_layer_id = net.AddLayer(l,
+		  { Connection(last_layer_id, last_layer_output) });
+		  last_layer_output = 0;
+	  }
 
       if ( StartsWithIdentifier ( line,"spatialprior" ) ) {
         if ( method_ == FCN ) {
