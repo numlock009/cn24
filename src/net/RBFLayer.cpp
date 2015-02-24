@@ -54,11 +54,15 @@ bool RBFLayer::Connect (const CombinedTensor* input,
                input->data.height() == output->data.height() &&
                input->data.maps() == output->data.maps();
 
+
+	param_ = new CombinedTensor(1);
+	param_->data.Clear(1);
+	parameters_.push_back(param_);
   return valid;
 }
 
 void RBFLayer::FeedForward() {
-	const datum r = 0.5;
+	const datum r = param_->data(0);
 #pragma omp parallel for default(shared)
 	for (std::size_t element = 0; element < input_->data.elements(); element++) {
 		const datum input_data = input_->data.data_ptr_const()[element];
@@ -70,8 +74,9 @@ void RBFLayer::FeedForward() {
 }
 
 void RBFLayer::BackPropagate() {
-	const datum r = 0.5;
-#pragma omp parallel for default(shared)
+	const datum r = param_->data(0);
+	datum dr = 0;
+#pragma omp parallel for default(shared) reduction(+:dr)
 	for (std::size_t element = 0; element < input_->data.elements(); element++) {
 		const datum input_data = input_->data.data_ptr_const()[element];
 		const datum output_delta = output_->delta.data_ptr_const()[element];
@@ -85,8 +90,13 @@ void RBFLayer::BackPropagate() {
 		// because of cache limitations.
 
 		const datum input_delta = (datum)(output_delta * -2.0 * r * r * input_data * output_data);
+		const datum r_gradient = (datum)(output_delta * -2.0 * r * input_data * input_data * output_data);
+
+		dr += r_gradient;
 		input_->delta.data_ptr()[element] = input_delta;
 	}
+
+	param_->delta[0] = dr;
 }
 
 }

@@ -31,6 +31,8 @@ public:
   void FeedForward();
   void BackPropagate();
 
+private:
+	CombinedTensor* param_ = nullptr;
 };
 
 }
