@@ -1,7 +1,7 @@
 # Sample CNN for KITTI Dataset
 
 # Network configuration
-?convolutional kernels=3 size=3x3
+?convolutional kernels=3 size=1x1
 ?rbf
 
 ?fullyconnected neurons=(o)

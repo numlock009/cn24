@@ -5,6 +5,7 @@
  * For licensing information, see the LICENSE file included with this project.
  */  
 #include <vector>
+#include <math.h>
 
 #include "CombinedTensor.h"
 #include "Log.h"
@@ -62,18 +63,27 @@ bool RBFLayer::Connect (const CombinedTensor* input,
 }
 
 void RBFLayer::FeedForward() {
+    // The FeedForward() function computes the layer output given the layer input.
+    // This layer only has one single parameter, which we store in r.
 	const datum r = param_->data(0);
 #pragma omp parallel for default(shared)
+    // Our RBF layer performs piecewise "rbf" transformation:
+	// rbf(x) = e^-(x*x*r*r)
+    // x is the input and r is the parameter of the layer
 	for (std::size_t element = 0; element < input_->data.elements(); element++) {
+        // Get the value for the input element.
 		const datum input_data = input_->data.data_ptr_const()[element];
-
-		// Calculate rbf: rbf(x) = e^-(x*x*r*r)
+        // Compute the value of the output element.
 		const datum output_data = exp(-(input_data * input_data * r * r));
 		output_->data.data_ptr()[element] = output_data;
 	}
 }
 
 void RBFLayer::BackPropagate() {
+    // The BackPropagate() function computes the gradients with respect to
+    // the layer input as well as the parameter r and multiplies them 
+    // with the respective gradient calculated during back-propagation so far
+    // (output_delta).
 	const datum r = param_->data(0);
 	datum dr = 0;
 #pragma omp parallel for default(shared) reduction(+:dr)
@@ -84,7 +94,7 @@ void RBFLayer::BackPropagate() {
 
 		// rbf'(x) = -2 * r^2 * x * rbf(x)
 		// rbf(x) = output
-		// this is why we use output_data here (so we don't need to calculate
+		// This is why we use output_data here (so we don't need to calculate
 		// rbf(x) twice).
 		// This may be slower for wide networks and large batches
 		// because of cache limitations.
