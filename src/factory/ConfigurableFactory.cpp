@@ -203,7 +203,7 @@ int ConfigurableFactory::AddLayers ( Net& net, Connection data_layer_connection,
 	  }
 
 	  if (StartsWithIdentifier(line, "rbf")) {
-		  RBFLayer* l = new RBFLayer();
+		  RBFLayer* l = new RBFLayer(rand());
 		  last_layer_id = net.AddLayer(l,
 		  { Connection(last_layer_id, last_layer_output) });
 		  last_layer_output = 0;

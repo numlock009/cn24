@@ -15,6 +15,8 @@
 #ifndef CONV_RBFLAYER_H
 #define CONV_RBFLAYER_H
 
+#include <random>
+
 #include "CombinedTensor.h"
 #include "SimpleLayer.h"
 
@@ -22,7 +24,7 @@ namespace Conv {
 
 class RBFLayer : public SimpleLayer {
 public:
-  RBFLayer();
+  RBFLayer(const unsigned int seed);
   
   // Implementations for SimpleLayer
   bool CreateOutputs (const std::vector< CombinedTensor* >& inputs,
@@ -30,9 +32,11 @@ public:
   bool Connect (const CombinedTensor* input, CombinedTensor* output);
   void FeedForward();
   void BackPropagate();
-
+  void OnLayerConnect (Layer* next_layer);
+  
 private:
-	CombinedTensor* param_ = nullptr;
+  CombinedTensor* param_ = nullptr;
+  std::mt19937 generator_;
 };
 
 }

@@ -14,7 +14,7 @@
 
 namespace Conv {
   
-RBFLayer::RBFLayer() {
+RBFLayer::RBFLayer(const unsigned int seed) : generator_(seed) {
 }
 
 
@@ -108,5 +108,12 @@ void RBFLayer::BackPropagate() {
 
 	param_->delta[0] = dr;
 }
+
+void RBFLayer::OnLayerConnect (Layer* next_layer) {
+  Conv::Layer::OnLayerConnect (next_layer);
+  std::uniform_real_distribution< datum > distribution(-1.0, 1.0);
+  param_->data[0] = distribution(generator_);
+}
+
 
 }

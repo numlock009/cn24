@@ -58,7 +58,7 @@ int main (int argc, char* argv[]) {
   const int data_layer_id = net.AddLayer (input_layer);
 
   // Add RBFLayer
-  Conv::RBFLayer rbf_layer;
+  Conv::RBFLayer rbf_layer(202349);
   const int output_layer_id = net.AddLayer (&rbf_layer, data_layer_id);
 
   // Add ErrorLayer
@@ -69,6 +69,10 @@ int main (int argc, char* argv[]) {
     Conv::Connection (data_layer_id, 3)
   });
 
+  // Set weights randomly
+  net.InitializeWeights();
+  
+  // Run gradient tester
   Conv::GradientTester::TestGradient (net);
 
   LOGEND;
