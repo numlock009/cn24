@@ -32,7 +32,8 @@ TensorStreamPatchDataset::TensorStreamPatchDataset (std::istream& training_strea
     dataset_localized_error_function error_function) :
   classes_ (classes), class_names_ (class_names), class_colors_ (class_colors),
   patchsize_x_ (patchsize_x), patchsize_y_ (patchsize_y),
-  error_function_ (error_function) {
+  error_function_ (error_function), rand_((patchsize_x + 2) * (patchsize_y + 3)),
+  dist_(-0.2, 0.2) {
   LOGDEBUG << "Instance created.";
 
   if (classes != class_names.size() ||
@@ -205,12 +206,32 @@ bool TensorStreamPatchDataset::GetTrainingSample (Tensor& data_tensor, Tensor& l
     unsigned int row = sample_offset / (data_[t].width() - (patchsize_x_ - 1));
     unsigned int col = sample_offset - (row * (data_[t].width() - (patchsize_x_ - 1)));
 
+    const bool light_augmentation = true;
+    
+#ifdef LIGHT_MOD
+    const unsigned int light_range = 5000;
+    const unsigned int light_index = index % light_range;
+    
+    const datum light_addition = light_min_ +
+      (((datum)light_index)/((datum)(light_range - 1))) * (light_max_ - light_min_);
+#else
+    const datum light_addition = dist_(rand_);
+#endif
+    
+    // LOGDEBUG << "light_addition: " << light_addition;
+    
     // Copy patch
     for (unsigned int map = 0; map < input_maps_; map++) {
       for (unsigned int y = 0; y < patchsize_y_; y++) {
         const datum* row_ptr = data_[t].data_ptr_const (col, row + y, map, 0);
         datum* target_row_ptr = data_tensor.data_ptr (0, y, map, sample);
-        std::memcpy (target_row_ptr, row_ptr, patchsize_x_ * sizeof(datum) / sizeof (char));
+        if(light_augmentation) {
+          for (unsigned int x = 0; x < patchsize_x_; x++) {
+            target_row_ptr[x] = row_ptr[x] + light_addition;
+          }
+        } else {
+          std::memcpy (target_row_ptr, row_ptr, patchsize_x_ * sizeof(datum) / sizeof (char));
+        }
       }
     }
     

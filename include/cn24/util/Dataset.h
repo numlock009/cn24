@@ -15,6 +15,7 @@
 #define CONV_DATASET_H
 
 #include <vector>
+#include <random>
 
 #include "Config.h"
 #include "Tensor.h"
@@ -198,6 +199,12 @@ private:
   std::vector<unsigned int> class_colors_;
   unsigned int classes_;
   dataset_localized_error_function error_function_;
+  
+  std::mt19937 rand_;
+  std::uniform_real_distribution<datum> dist_;
+  
+  const datum light_min_ = -0.5;
+  const datum light_max_ = 0.5;
 }; 
 
 class TensorStreamDataset : public Dataset {
